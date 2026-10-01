@@ -1,22 +1,16 @@
-package davi.prado.XPTO.entity;
+package davi.prado.XPTO.dto;
 
+import davi.prado.XPTO.entity.ClienteEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.Length;
 
-@Entity
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "CONTA")
-public class ContaEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ContaDTO {
 
     @NotNull
     private String instituicaoFinanceira;
@@ -27,10 +21,9 @@ public class ContaEntity {
     @NotNull
     private String numeroConta;
 
-    @Column(length = 1)
+    @NotNull
     private String ativo;
 
-    @ManyToOne
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private ClienteEntity cliente;
+    @NotNull
+    private Long clienteId;
 }
