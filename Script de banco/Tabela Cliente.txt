@@ -7,7 +7,7 @@ create table cliente (
         tipo_cliente varchar2(2) not null,
         data_nascimento date,
         nome_fantasia varchar2(255),
-        data_cadastro date default sysdate not null,
+        data_cadastro timestamp default systimestamp not null,
         ativo varchar2(1) default 'S' not null,
 
         CONSTRAINT PK_CLIENTE PRIMARY KEY (id),

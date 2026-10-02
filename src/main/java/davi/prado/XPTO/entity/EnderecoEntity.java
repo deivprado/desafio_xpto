@@ -17,24 +17,24 @@ public class EnderecoEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false)
     private String logradouro;
 
-    @NotNull
+    @Column(nullable = false)
     private String numero;
 
     private String complemento;
 
-    @NotNull
+    @Column(nullable = false)
     private String bairro;
 
-    @NotNull
+    @Column(nullable = false)
     private String cidade;
 
-    @NotNull
+    @Column(nullable = false)
     private String uf;
 
-    @NotNull
+    @Column(nullable = false)
     private String cep;
 
     @ManyToOne

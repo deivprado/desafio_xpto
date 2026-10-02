@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -21,23 +22,23 @@ public class ClienteEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false)
     private String nome;
 
     @Column(nullable = false, length = 14, unique = true)
     private String documento;
 
-    @NotNull
+    @Column(nullable = false)
     private String telefone;
 
-    @NotNull
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false, length = 2)
     private String tipoCliente;
 
-    @NotNull
-    private LocalDate dataCadastro;
+    @Column(nullable = false)
+    private LocalDateTime dataCadastro;
 
     @Column(nullable = false, length = 1)
     private String ativo;

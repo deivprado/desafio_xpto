@@ -18,13 +18,13 @@ public class ContaEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false)
     private String instituicaoFinanceira;
 
-    @NotNull
+    @Column(nullable = false)
     private String agencia;
 
-    @NotNull
+    @Column(nullable = false)
     private String numeroConta;
 
     @Column(length = 1)
