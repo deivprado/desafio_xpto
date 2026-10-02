@@ -1,7 +1,6 @@
-package davi.prado.XPTO.dto;
+package davi.prado.XPTO.dto.Conta;
 
-import davi.prado.XPTO.entity.ClienteEntity;
-import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -10,20 +9,18 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContaDTO {
+public class ContaCreateDTO {
 
-    @NotNull
+    @NotBlank
     private String instituicaoFinanceira;
 
-    @NotNull
+    @NotBlank
     private String agencia;
 
-    @NotNull
+    @NotBlank
     private String numeroConta;
 
     @NotNull
-    private String ativo;
+    private String clienteDocumento;
 
-    @NotNull
-    private Long clienteId;
 }

@@ -1,7 +1,6 @@
-package davi.prado.XPTO.dto;
+package davi.prado.XPTO.dto.Endereco;
 
-import davi.prado.XPTO.entity.ClienteEntity;
-import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -10,28 +9,28 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnderecoDTO {
+public class EnderecoCreateDTO {
 
-    @NotNull
+    @NotBlank
     private String logradouro;
 
-    @NotNull
+    @NotBlank
     private String numero;
 
     private String complemento;
 
-    @NotNull
+    @NotBlank
     private String bairro;
 
-    @NotNull
+    @NotBlank
     private String cidade;
 
-    @NotNull
+    @NotBlank
     private String uf;
 
-    @NotNull
+    @NotBlank
     private String cep;
 
-    @NotNull
-    private Long clienteId;
+    @NotBlank
+    private String clienteDocumento;
 }

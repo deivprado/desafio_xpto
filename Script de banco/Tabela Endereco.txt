@@ -5,12 +5,14 @@ create table endereco (
         bairro varchar2(255) not null,
         cep varchar2(255) not null,
         cidade varchar2(255) not null,
-	uf varchar2(255) not null,
+	uf varchar2(2) not null,
         complemento varchar2(255),
+	ativo varchar2(1) default 'S' not null,
         cliente_id number(19,0) not null,
         
 
 	CONSTRAINT PK_ENDERECO PRIMARY KEY (id),
 	CONSTRAINT FK_ENDERECO_CLIENTE FOREIGN KEY (cliente_id) 
-        REFERENCES cliente (id)
+        REFERENCES cliente (id),
+	CONSTRAINT UK_ENDERECO_UNICO UNIQUE (cliente_id, cep, numero)
     );

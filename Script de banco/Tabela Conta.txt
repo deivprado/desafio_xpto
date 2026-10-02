@@ -9,5 +9,6 @@ create table conta (
 
 	CONSTRAINT PK_CONTA PRIMARY KEY (id),
 	CONSTRAINT FK_CONTA_CLIENTE FOREIGN KEY (cliente_id) 
-        REFERENCES cliente (id)
+        REFERENCES cliente (id),
+	CONSTRAINT UK_CONTA_BANCARIA_UNICA UNIQUE (instituicao_financeira, agencia, numero_conta)
     );

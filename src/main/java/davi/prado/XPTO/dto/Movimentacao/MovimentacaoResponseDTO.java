@@ -1,37 +1,33 @@
 package davi.prado.XPTO.dto.Movimentacao;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import davi.prado.XPTO.entity.ContaEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MovimentacaoCreateDTO {
+public class MovimentacaoResponseDTO {
 
-    @NotBlank
     private String tipoMovimentacao;
 
-    @NotNull
-    @Positive
     private BigDecimal valor;
 
-    @NotBlank
+    private LocalDateTime dataMovimentacao;
+
     private String descricao;
 
-    @NotBlank
     private String contaInstituicao;
 
-    @NotBlank
     private String contaNumero;
 
-    @NotBlank
     private String contaAgencia;
 
 }

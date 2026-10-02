@@ -3,10 +3,13 @@ package davi.prado.XPTO.service;
 import davi.prado.XPTO.dto.Cliente.ClienteCreateDTO;
 import davi.prado.XPTO.dto.Cliente.ClienteResponseDTO;
 import davi.prado.XPTO.dto.Cliente.ClienteUpdateDTO;
+import davi.prado.XPTO.dto.Conta.ContaCreateDTO;
+import davi.prado.XPTO.dto.Movimentacao.MovimentacaoCreateDTO;
 import davi.prado.XPTO.entity.ClienteEntity;
 import davi.prado.XPTO.exception.ClienteJaCadastradoException;
 import davi.prado.XPTO.exception.ClienteNaoEncontradoException;
 import davi.prado.XPTO.repository.ClienteRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +24,13 @@ import java.util.Optional;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final ContaService contaService;
+    private final MovimentacaoService movimentacaoService;
 
+    @Transactional
     public ClienteResponseDTO criarCliente(ClienteCreateDTO clienteCreateDTO) {
         String documentoLimpo = clienteCreateDTO.getDocumento().replaceAll("[^0-9]", "");
+        String numeroLimpo = clienteCreateDTO.getTelefone().replaceAll("[^0-9]", "");
 
         Optional<ClienteEntity> cliente = clienteRepository.findByDocumento(documentoLimpo);
 
@@ -36,37 +43,56 @@ public class ClienteService {
         validaCamposEspecificos(tipoCliente, clienteCreateDTO.getDataNascimento(), clienteCreateDTO.getNomeFantasia());
 
         ClienteEntity clienteNovo = clienteRepository.save(ClienteEntity.builder()
-                                        .nome(clienteCreateDTO.getNome())
+                                        .nome(clienteCreateDTO.getNome().toUpperCase())
                                         .documento(documentoLimpo)
-                                        .telefone(clienteCreateDTO.getTelefone())
-                                        .email(clienteCreateDTO.getEmail())
+                                        .telefone(numeroLimpo)
+                                        .email(clienteCreateDTO.getEmail().toUpperCase())
                                         .tipoCliente(tipoCliente)
                                         .dataCadastro(LocalDateTime.now())
                                         .ativo("S")
                                         .dataNascimento(clienteCreateDTO.getDataNascimento())
-                                        .nomeFantasia(clienteCreateDTO.getNomeFantasia())
+                                        .nomeFantasia(clienteCreateDTO.getNomeFantasia().toUpperCase())
                                         .build());
 
+        ContaCreateDTO contaNova = ContaCreateDTO.builder()
+                .instituicaoFinanceira(clienteCreateDTO.getInstituicaoFinanceira())
+                .agencia(clienteCreateDTO.getAgencia())
+                .numeroConta(clienteCreateDTO.getNumeroConta())
+                .clienteDocumento(clienteNovo.getDocumento())
+                .build();
 
-        //Ainda precisa fazer a regra de criar a conta e a movimentação
+        contaService.criarConta(contaNova);
+
+        MovimentacaoCreateDTO movimentacaoNova = MovimentacaoCreateDTO.builder()
+                .tipoMovimentacao("DEBITO")
+                .valor(clienteCreateDTO.getValorInicial())
+                .descricao("DEPÓSITO INICIAL DE ABERTURA DE CONTA")
+                .contaInstituicao(clienteCreateDTO.getInstituicaoFinanceira())
+                .contaAgencia(clienteCreateDTO.getAgencia())
+                .contaNumero(clienteCreateDTO.getNumeroConta())
+                .build();
+
+        movimentacaoService.criarMovimentacao(movimentacaoNova);
 
         return converterParaResponseDTO(clienteNovo);
     }
 
-    private ClienteResponseDTO atualizarCliente(String documento, ClienteUpdateDTO clienteUpdateDTO) {
+    public ClienteResponseDTO atualizarCliente(String documento, ClienteUpdateDTO clienteUpdateDTO) {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
+        String numeroLimpo = clienteUpdateDTO.getTelefone().replaceAll("[^0-9]", "");
+
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
                 .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
         if (clienteUpdateDTO.getNome() != null) {
-            clienteExistente.setNome(clienteUpdateDTO.getNome());
+            clienteExistente.setNome(clienteUpdateDTO.getNome().toUpperCase());
         }
         if (clienteUpdateDTO.getTelefone() != null) {
-            clienteExistente.setTelefone(clienteUpdateDTO.getTelefone());
+            clienteExistente.setTelefone(numeroLimpo);
         }
         if (clienteUpdateDTO.getEmail() != null) {
-            clienteExistente.setEmail(clienteUpdateDTO.getEmail());
+            clienteExistente.setEmail(clienteUpdateDTO.getEmail().toUpperCase());
         }
         if (clienteUpdateDTO.getAtivo() != null) {
             clienteExistente.setAtivo(clienteUpdateDTO.getAtivo());
@@ -81,9 +107,9 @@ public class ClienteService {
 
         String nomeFantasiaFinal;
         if (clienteUpdateDTO.getNomeFantasia() != null) {
-            nomeFantasiaFinal = clienteUpdateDTO.getNomeFantasia();
+            nomeFantasiaFinal = clienteUpdateDTO.getNomeFantasia().toUpperCase();
         } else {
-            nomeFantasiaFinal = clienteExistente.getNomeFantasia();
+            nomeFantasiaFinal = clienteExistente.getNomeFantasia().toUpperCase();
         }
 
         validaCamposEspecificos(clienteExistente.getTipoCliente(), dataNascimentoFinal, nomeFantasiaFinal);
@@ -96,7 +122,7 @@ public class ClienteService {
         return converterParaResponseDTO(clienteExistente);
     }
 
-    private ClienteResponseDTO deletarCliente(String documento) {
+    public ClienteResponseDTO deletarCliente(String documento) {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
@@ -109,8 +135,8 @@ public class ClienteService {
         return converterParaResponseDTO(clienteExistente);
     }
 
-    private List<ClienteResponseDTO> consultarClientes() {
-        List<ClienteEntity> listaCliente = clienteRepository.findAllByAtivo();
+    public List<ClienteResponseDTO> consultarCliente() {
+        List<ClienteEntity> listaCliente = clienteRepository.findAll();
         List<ClienteResponseDTO> listaResponse = new ArrayList<>();
 
         for (ClienteEntity cliente : listaCliente) {
@@ -120,13 +146,13 @@ public class ClienteService {
         return listaResponse;
     }
 
-    private ClienteResponseDTO consultarClientePorDocumento(String documento) {
+    public ClienteEntity consultarClientePorDocumento(String documento) {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
                 .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
-        return converterParaResponseDTO(clienteExistente);
+        return clienteExistente;
     }
 
     private String buscarTipoCliente(String documento){

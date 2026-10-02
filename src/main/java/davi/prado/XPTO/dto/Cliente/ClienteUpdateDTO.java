@@ -13,13 +13,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ClienteUpdateDTO {
 
-    @NotBlank
     private String nome;
-    @NotBlank
+
     private String email;
-    @NotBlank
+
     private String telefone;
-    @NotBlank
+
     private String ativo;
 
     private LocalDate dataNascimento;

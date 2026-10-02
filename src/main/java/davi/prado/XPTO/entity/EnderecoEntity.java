@@ -37,6 +37,9 @@ public class EnderecoEntity {
     @Column(nullable = false)
     private String cep;
 
+    @Column(nullable = false)
+    private String ativo;
+
     @ManyToOne
     @JoinColumn(name = "cliente_id", nullable = false)
     private ClienteEntity cliente;

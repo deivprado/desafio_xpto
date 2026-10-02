@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -25,4 +26,12 @@ public class ClienteCreateDTO {
     private LocalDate dataNascimento;
 
     private String nomeFantasia;
+
+    private String instituicaoFinanceira;
+
+    private String agencia;
+
+    private String numeroConta;
+
+    private BigDecimal valorInicial;
 }

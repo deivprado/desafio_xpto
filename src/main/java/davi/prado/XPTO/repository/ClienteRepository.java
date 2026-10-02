@@ -10,8 +10,7 @@ import java.util.Optional;
 
 public interface ClienteRepository extends JpaRepository<ClienteEntity, Long> {
 
-    Optional<ClienteEntity> findByDocumento(String documento);
+    @Query(value = "SELECT c FROM ClienteEntity c WHERE c.documento = :documento AND c.ativo = 'S'")
+    Optional<ClienteEntity> findByDocumento(@Param("documento") String documento);
 
-    @Query(value = "SELECT c FROM ClienteEntity c WHERE c.ativo = 'S'")
-    List<ClienteEntity> findAllByAtivo();
 }
