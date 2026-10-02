@@ -2,6 +2,16 @@ package davi.prado.XPTO.repository;
 
 import davi.prado.XPTO.entity.ClienteEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface ClienteRepository extends JpaRepository<ClienteEntity, Long> {
+
+    Optional<ClienteEntity> findByDocumento(String documento);
+
+    @Query(value = "SELECT c FROM ClienteEntity c WHERE c.ativo = 'S'")
+    List<ClienteEntity> findAllByAtivo();
 }

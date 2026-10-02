@@ -1,6 +1,6 @@
-package davi.prado.XPTO.dto;
+package davi.prado.XPTO.dto.Cliente;
 
-import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -11,19 +11,16 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClienteDTO {
+public class ClienteCreateDTO {
 
-    @NotNull
-    private String nome;
-
-    @Column(nullable = false, length = 14, unique = true)
+    @NotBlank
     private String documento;
-
-    @NotNull
-    private String telefone;
-
-    @NotNull
+    @NotBlank
+    private String nome;
+    @NotBlank
     private String email;
+    @NotBlank
+    private String telefone;
 
     private LocalDate dataNascimento;
 

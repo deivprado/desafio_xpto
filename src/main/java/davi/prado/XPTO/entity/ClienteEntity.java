@@ -36,6 +36,12 @@ public class ClienteEntity {
     @Column(nullable = false, length = 2)
     private String tipoCliente;
 
+    @NotNull
+    private LocalDate dataCadastro;
+
+    @Column(nullable = false, length = 1)
+    private String ativo;
+
     private LocalDate dataNascimento;
 
     private String nomeFantasia;
