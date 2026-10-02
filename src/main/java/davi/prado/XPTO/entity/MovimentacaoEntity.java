@@ -31,7 +31,7 @@ public class MovimentacaoEntity {
     @Column(nullable = false)
     private String descricao;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "conta_id", nullable = false)
     private ContaEntity conta;
 

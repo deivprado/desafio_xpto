@@ -18,5 +18,6 @@ public class MovimentacaoCreateDTO {
 
     private String descricao;
 
+    private Long contaId;
 
 }

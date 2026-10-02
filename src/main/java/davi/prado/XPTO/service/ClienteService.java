@@ -4,12 +4,14 @@ import davi.prado.XPTO.dto.Cliente.ClienteCreateDTO;
 import davi.prado.XPTO.dto.Cliente.ClienteResponseDTO;
 import davi.prado.XPTO.dto.Cliente.ClienteUpdateDTO;
 import davi.prado.XPTO.entity.ClienteEntity;
+import davi.prado.XPTO.exception.ClienteJaCadastradoException;
+import davi.prado.XPTO.exception.ClienteNaoEncontradoException;
 import davi.prado.XPTO.repository.ClienteRepository;
-import davi.prado.XPTO.repository.ContaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +28,7 @@ public class ClienteService {
         Optional<ClienteEntity> cliente = clienteRepository.findByDocumento(documentoLimpo);
 
         if (cliente.isPresent()) {
-            throw new RuntimeException("Erro: Já existe um cliente cadastrado com este documento!");
+            throw new ClienteJaCadastradoException("Erro: Já existe um cliente cadastrado com este documento!");
         }
 
         String tipoCliente = buscarTipoCliente(documentoLimpo);
@@ -39,7 +41,7 @@ public class ClienteService {
                                         .telefone(clienteCreateDTO.getTelefone())
                                         .email(clienteCreateDTO.getEmail())
                                         .tipoCliente(tipoCliente)
-                                        .dataCadastro(LocalDate.now())
+                                        .dataCadastro(LocalDateTime.now())
                                         .ativo("S")
                                         .dataNascimento(clienteCreateDTO.getDataNascimento())
                                         .nomeFantasia(clienteCreateDTO.getNomeFantasia())
@@ -55,7 +57,7 @@ public class ClienteService {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
-                .orElseThrow(() -> new RuntimeException("Erro: Não existe um cliente cadastrado com este documento!"));
+                .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
         if (clienteUpdateDTO.getNome() != null) {
             clienteExistente.setNome(clienteUpdateDTO.getNome());
@@ -98,7 +100,7 @@ public class ClienteService {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
-                .orElseThrow(() -> new RuntimeException("Erro: Não existe um cliente cadastrado com este documento!"));
+                .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
         clienteExistente.setAtivo("N");
 
@@ -122,10 +124,9 @@ public class ClienteService {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
-                .orElseThrow(() -> new RuntimeException("Erro: Não existe um cliente cadastrado com este documento!"));
+                .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
         return converterParaResponseDTO(clienteExistente);
-
     }
 
     private String buscarTipoCliente(String documento){
