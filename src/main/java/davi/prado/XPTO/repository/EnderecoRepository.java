@@ -10,10 +10,10 @@ import java.util.Optional;
 
 public interface EnderecoRepository extends JpaRepository<EnderecoEntity, Long> {
 
-    @Query(value = "SELECT e FROM EnderecoEntity e WHERE e.cep = :cep AND e.numero = :numero AND e.cliente = :clienteId")
+    @Query(value = "SELECT e FROM EnderecoEntity e WHERE e.cep = :cep AND e.numero = :numero AND e.cliente.id = :clienteId")
     Optional<EnderecoEntity> findByUnique(@Param("cep") String cep, @Param("numero") String numero, @Param("clienteId") Long clienteId );
 
-    @Query(value = "SELECT e FROM EnderecoEntity e WHERE e.cep = :cep AND e.numero = :numero AND e.cliente = :clienteId AND e.ativo = 'S'" )
+    @Query(value = "SELECT e FROM EnderecoEntity e WHERE e.cep = :cep AND e.numero = :numero AND e.cliente.id = :clienteId AND e.ativo = 'S'" )
     Optional<EnderecoEntity> findByUniqueAtivo(@Param("cep") String cep, @Param("numero") String numero, @Param("clienteId") Long clienteId );
 
 

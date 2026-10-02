@@ -1,17 +1,18 @@
-package davi.prado.XPTO.dto.Cliente;
+package davi.prado.XPTO.dto.cliente;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClienteUpdateDTO {
+public class ClienteResponseDTO {
+
+    private String documento;
 
     private String nome;
 
@@ -19,9 +20,15 @@ public class ClienteUpdateDTO {
 
     private String telefone;
 
+    private String tipoCliente;
+
+    private LocalDateTime dataCadastro;
+
     private String ativo;
 
     private LocalDate dataNascimento;
 
     private String nomeFantasia;
+
+
 }

@@ -1,9 +1,9 @@
 package davi.prado.XPTO.service;
 
-import davi.prado.XPTO.dto.Conta.ContaCreateDTO;
-import davi.prado.XPTO.dto.Conta.ContaDeleteDto;
-import davi.prado.XPTO.dto.Conta.ContaResponseDTO;
-import davi.prado.XPTO.dto.Conta.ContaUpdateDTO;
+import davi.prado.XPTO.dto.conta.ContaCreateDTO;
+import davi.prado.XPTO.dto.conta.ContaDeleteDto;
+import davi.prado.XPTO.dto.conta.ContaResponseDTO;
+import davi.prado.XPTO.dto.conta.ContaUpdateDTO;
 import davi.prado.XPTO.entity.ClienteEntity;
 import davi.prado.XPTO.entity.ContaEntity;
 import davi.prado.XPTO.entity.MovimentacaoEntity;
@@ -34,12 +34,12 @@ public class ContaService {
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
                 .orElseThrow(() -> new ClienteNaoEncontradoException("Erro: Não existe um cliente cadastrado com este documento!"));
 
-        String numeroLimpo = contaCreateDTO.getInstituicaoFinanceira().replaceAll("[^0-9]", "");
+        String numeroLimpo = contaCreateDTO.getNumeroConta().replaceAll("[^0-9]", "");
 
         Optional<ContaEntity> conta = contaRepository.findByUnique(contaCreateDTO.getInstituicaoFinanceira(), contaCreateDTO.getAgencia(), numeroLimpo);
 
         if (conta.isPresent()) {
-            throw new
+            throw new MovimentacaoJaExisteException("Erro: Já existe uma conta com essas informações!");
         }
 
         ContaEntity contaNova = contaRepository.save(ContaEntity.builder()
@@ -51,7 +51,6 @@ public class ContaService {
                                         .build());
 
         return converterParaResponseDTO(contaNova);
-
     }
 
     public ContaResponseDTO alterarConta(ContaUpdateDTO contaUpdateDTO) {

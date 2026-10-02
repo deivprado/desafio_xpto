@@ -1,7 +1,6 @@
-package davi.prado.XPTO.dto.Cliente;
+package davi.prado.XPTO.dto.cliente;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;

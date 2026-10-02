@@ -1,10 +1,10 @@
 package davi.prado.XPTO.service;
 
-import davi.prado.XPTO.dto.Cliente.ClienteCreateDTO;
-import davi.prado.XPTO.dto.Cliente.ClienteResponseDTO;
-import davi.prado.XPTO.dto.Cliente.ClienteUpdateDTO;
-import davi.prado.XPTO.dto.Conta.ContaCreateDTO;
-import davi.prado.XPTO.dto.Movimentacao.MovimentacaoCreateDTO;
+import davi.prado.XPTO.dto.cliente.ClienteCreateDTO;
+import davi.prado.XPTO.dto.cliente.ClienteResponseDTO;
+import davi.prado.XPTO.dto.cliente.ClienteUpdateDTO;
+import davi.prado.XPTO.dto.conta.ContaCreateDTO;
+import davi.prado.XPTO.dto.movimentacao.MovimentacaoCreateDTO;
 import davi.prado.XPTO.entity.ClienteEntity;
 import davi.prado.XPTO.exception.ClienteJaCadastradoException;
 import davi.prado.XPTO.exception.ClienteNaoEncontradoException;
@@ -51,7 +51,7 @@ public class ClienteService {
                                         .dataCadastro(LocalDateTime.now())
                                         .ativo("S")
                                         .dataNascimento(clienteCreateDTO.getDataNascimento())
-                                        .nomeFantasia(clienteCreateDTO.getNomeFantasia().toUpperCase())
+                                        .nomeFantasia(maiusculo(clienteCreateDTO.getNomeFantasia()))
                                         .build());
 
         ContaCreateDTO contaNova = ContaCreateDTO.builder()
@@ -64,7 +64,7 @@ public class ClienteService {
         contaService.criarConta(contaNova);
 
         MovimentacaoCreateDTO movimentacaoNova = MovimentacaoCreateDTO.builder()
-                .tipoMovimentacao("DEBITO")
+                .tipoMovimentacao("CREDITO")
                 .valor(clienteCreateDTO.getValorInicial())
                 .descricao("DEPÓSITO INICIAL DE ABERTURA DE CONTA")
                 .contaInstituicao(clienteCreateDTO.getInstituicaoFinanceira())
@@ -79,7 +79,9 @@ public class ClienteService {
 
     public ClienteResponseDTO atualizarCliente(String documento, ClienteUpdateDTO clienteUpdateDTO) {
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
-        String numeroLimpo = clienteUpdateDTO.getTelefone().replaceAll("[^0-9]", "");
+        String numeroLimpo = clienteUpdateDTO.getTelefone() == null
+                ? null
+                : clienteUpdateDTO.getTelefone().replaceAll("[^0-9]", "");
 
 
         ClienteEntity clienteExistente = clienteRepository.findByDocumento(documentoLimpo)
@@ -107,9 +109,9 @@ public class ClienteService {
 
         String nomeFantasiaFinal;
         if (clienteUpdateDTO.getNomeFantasia() != null) {
-            nomeFantasiaFinal = clienteUpdateDTO.getNomeFantasia().toUpperCase();
+            nomeFantasiaFinal = maiusculo(clienteUpdateDTO.getNomeFantasia());
         } else {
-            nomeFantasiaFinal = clienteExistente.getNomeFantasia().toUpperCase();
+            nomeFantasiaFinal = maiusculo(clienteExistente.getNomeFantasia());
         }
 
         validaCamposEspecificos(clienteExistente.getTipoCliente(), dataNascimentoFinal, nomeFantasiaFinal);
@@ -170,20 +172,27 @@ public class ClienteService {
     }
 
     private void validaCamposEspecificos(String tipoCliente, LocalDate dataNascimento, String nomeFantasia) {
+        boolean temNomeFantasia = nomeFantasia != null && !nomeFantasia.isBlank();
 
         if (tipoCliente.equals("PF")) {
             if (dataNascimento == null) {
                 throw new RuntimeException("Erro: Para cliente PF é necessário informar a data de nascimento!");
-            } else if (nomeFantasia.isBlank()) {
+            }
+            if (temNomeFantasia) {
                 throw new RuntimeException("Erro: Para cliente PF não pode preencher o nome fantasia!");
             }
         } else {
-            if (nomeFantasia.isBlank()) {
+            if (!temNomeFantasia) {
                 throw new RuntimeException("Erro: Para cliente PJ é necessário informar o nome fantasia!");
-            } else if (dataNascimento != null) {
+            }
+            if (dataNascimento != null) {
                 throw new RuntimeException("Erro: Para cliente PJ não pode preencher a data de nascimento!");
             }
         }
+    }
+
+    private static String maiusculo(String texto) {
+        return texto == null ? null : texto.toUpperCase();
     }
 
     private ClienteResponseDTO converterParaResponseDTO(ClienteEntity cliente) {

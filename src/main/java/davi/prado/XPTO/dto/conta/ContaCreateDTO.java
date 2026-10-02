@@ -1,4 +1,4 @@
-package davi.prado.XPTO.dto.Conta;
+package davi.prado.XPTO.dto.conta;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

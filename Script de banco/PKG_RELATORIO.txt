@@ -1,0 +1,199 @@
+CREATE OR REPLACE PACKAGE PKG_RELATORIO IS
+
+    -- 1) RELATÓRIO DE SALDO DO CLIENTE X (Histórico Completo)
+    PROCEDURE PRC_REL_SALDO_CLIENTE (
+        p_cliente_id IN  NUMBER,
+        o_cursor     OUT SYS_REFCURSOR
+    );
+
+    -- 2) RELATÓRIO DE SALDO DO CLIENTE X POR PERÍODO
+    PROCEDURE PRC_REL_SALDO_CLIENTE_PERIODO (
+        p_cliente_id IN  NUMBER,
+        p_inicio     IN  DATE,
+        p_fim        IN  DATE,
+        o_cursor     OUT SYS_REFCURSOR
+    );
+
+    -- 3) RECEITA DA EMPRESA (XPTO) POR PERÍODO
+    PROCEDURE PRC_REL_RECEITA_XPTO (
+        p_inicio IN  DATE DEFAULT SYSDATE - 30,
+        p_fim    IN  DATE DEFAULT SYSDATE,
+        o_cursor OUT SYS_REFCURSOR
+    );
+
+    -- 4) RELATÓRIO DE SALDO DE TODOS OS CLIENTES
+    PROCEDURE PRC_REL_TODOS_CLIENTES (
+        p_data_ref IN  DATE DEFAULT SYSDATE,
+        o_cursor   OUT SYS_REFCURSOR
+    );
+
+END PKG_RELATORIO;
+
+CREATE OR REPLACE PACKAGE BODY PKG_RELATORIO IS
+
+    PROCEDURE PRC_REL_SALDO_CLIENTE (
+        p_cliente_id IN  NUMBER,
+        o_cursor     OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN o_cursor FOR
+        SELECT cl.nome,
+               cl.data_cadastro,
+               e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.uf, e.cep,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'CREDITO' THEN 1 ELSE 0 END), 0) AS qtd_credito,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'DEBITO' THEN 1 ELSE 0 END), 0)  AS qtd_debito,
+               COUNT(m.id) AS total_movimentacoes,
+               -- Valor pago pelas movimentações: faixa cheia por janela de 30 dias
+               -- (até 10 -> R$ 1,00 | de 11 a 20 -> R$ 0,75 | acima de 20 -> R$ 0,50)
+               NVL((SELECT SUM(CASE WHEN ciclo.qtd <= 10 THEN ciclo.qtd * 1.00
+                                    WHEN ciclo.qtd <= 20 THEN ciclo.qtd * 0.75
+                                    ELSE                 ciclo.qtd * 0.50 END)
+                      FROM (SELECT COUNT(*) AS qtd
+                              FROM movimentacao m2
+                              JOIN conta   c2  ON c2.id  = m2.conta_id
+                              JOIN cliente cl2 ON cl2.id = c2.cliente_id
+                             WHERE cl2.id = p_cliente_id
+                             GROUP BY TRUNC((CAST(m2.data_movimentacao AS DATE)
+                                             - CAST(cl2.data_cadastro AS DATE)) / 30)
+                           ) ciclo), 0) AS valor_pago_movimentacoes, 
+               -- No relatório completo o saldo inicial é 0 (antes de qualquer movimentação)
+               0 AS saldo_inicial,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'CREDITO' THEN m.valor 
+                            WHEN m.tipo_movimentacao = 'DEBITO'  THEN -m.valor ELSE 0 END), 0) AS saldo_atual
+          FROM cliente cl
+          LEFT JOIN endereco e ON e.id = (SELECT MIN(e2.id)
+                                            FROM endereco e2
+                                           WHERE e2.cliente_id = cl.id
+                                             AND e2.ativo = 'S')
+          LEFT JOIN conta c    ON c.cliente_id = cl.id
+          LEFT JOIN movimentacao m ON m.conta_id = c.id
+         WHERE cl.id = p_cliente_id
+         GROUP BY cl.nome, cl.data_cadastro, e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.uf, e.cep;
+    END PRC_REL_SALDO_CLIENTE;
+
+
+    PROCEDURE PRC_REL_SALDO_CLIENTE_PERIODO (
+        p_cliente_id IN  NUMBER,
+        p_inicio     IN  DATE,
+        p_fim        IN  DATE,
+        o_cursor     OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        IF p_inicio > p_fim THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Período inválido: a data inicial não pode ser maior que a final.');
+        END IF;
+
+        OPEN o_cursor FOR
+        SELECT cl.nome,
+               cl.data_cadastro,
+               e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.uf, e.cep,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'CREDITO' THEN 1 ELSE 0 END), 0) AS qtd_credito,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'DEBITO' THEN 1 ELSE 0 END), 0)  AS qtd_debito,
+               COUNT(m.id) AS total_movimentacoes,
+               -- Valor pago pelas movimentações: faixa cheia por janela de 30 dias
+               -- (até 10 -> R$ 1,00 | de 11 a 20 -> R$ 0,75 | acima de 20 -> R$ 0,50)
+               NVL((SELECT SUM(CASE WHEN ciclo.qtd <= 10 THEN ciclo.qtd * 1.00
+                                    WHEN ciclo.qtd <= 20 THEN ciclo.qtd * 0.75
+                                    ELSE                 ciclo.qtd * 0.50 END)
+                      FROM (SELECT COUNT(*) AS qtd
+                              FROM movimentacao m2
+                              JOIN conta   c2  ON c2.id  = m2.conta_id
+                              JOIN cliente cl2 ON cl2.id = c2.cliente_id
+                             WHERE cl2.id = p_cliente_id
+                               AND m2.data_movimentacao >= p_inicio
+                               AND m2.data_movimentacao <  p_fim + 1
+                             GROUP BY TRUNC((CAST(m2.data_movimentacao AS DATE)
+                                             - CAST(cl2.data_cadastro AS DATE)) / 30)
+                           ) ciclo), 0) AS valor_pago_movimentacoes, 
+               -- Saldo inicial = saldo acumulado ANTES do início do período
+               NVL((SELECT SUM(CASE WHEN m3.tipo_movimentacao = 'CREDITO' THEN m3.valor
+                                    WHEN m3.tipo_movimentacao = 'DEBITO'  THEN -m3.valor ELSE 0 END)
+                      FROM movimentacao m3
+                      JOIN conta   c3  ON c3.id  = m3.conta_id
+                      JOIN cliente cl3 ON cl3.id = c3.cliente_id
+                     WHERE cl3.id = p_cliente_id
+                       AND m3.data_movimentacao < p_inicio), 0) AS saldo_inicial,
+               -- Saldo atual = saldo acumulado ATÉ o fim do período
+               -- (= saldo inicial + créditos - débitos do período)
+               NVL((SELECT SUM(CASE WHEN m4.tipo_movimentacao = 'CREDITO' THEN m4.valor
+                                    WHEN m4.tipo_movimentacao = 'DEBITO'  THEN -m4.valor ELSE 0 END)
+                      FROM movimentacao m4
+                      JOIN conta   c4  ON c4.id  = m4.conta_id
+                      JOIN cliente cl4 ON cl4.id = c4.cliente_id
+                     WHERE cl4.id = p_cliente_id
+                       AND m4.data_movimentacao < p_fim + 1), 0) AS saldo_atual
+          FROM cliente cl
+          LEFT JOIN endereco e ON e.id = (SELECT MIN(e2.id)
+                                            FROM endereco e2
+                                           WHERE e2.cliente_id = cl.id
+                                             AND e2.ativo = 'S')
+          LEFT JOIN conta c    ON c.cliente_id = cl.id
+          LEFT JOIN movimentacao m ON m.conta_id = c.id 
+                                 AND m.data_movimentacao >= p_inicio 
+                                 AND m.data_movimentacao < p_fim + 1
+         WHERE cl.id = p_cliente_id
+         GROUP BY cl.nome, cl.data_cadastro, e.logradouro, e.numero, e.complemento, e.bairro, e.cidade, e.uf, e.cep;
+    END PRC_REL_SALDO_CLIENTE_PERIODO;
+
+    PROCEDURE PRC_REL_RECEITA_XPTO (
+        p_inicio IN  DATE, -- No corpo do pacote omitimos o comando DEFAULT
+        p_fim    IN  DATE,
+        o_cursor OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        IF p_inicio IS NOT NULL AND p_fim IS NOT NULL AND p_inicio > p_fim THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Periodo invalido: a data inicial nao pode ser maior que a final.');
+        END IF;
+
+        OPEN o_cursor FOR
+        WITH
+        mov_cliente AS (
+            SELECT cl.id   AS cliente_id,
+                   cl.nome,
+                   GREATEST(0, TRUNC((CAST(m.data_movimentacao AS DATE)
+                                      - CAST(cl.data_cadastro AS DATE)) / 30)) AS ciclo
+              FROM movimentacao m
+              JOIN conta   c  ON c.id = m.conta_id
+              JOIN cliente cl ON cl.id = c.cliente_id
+             WHERE cl.ativo = 'S'
+               AND (p_inicio IS NULL OR m.data_movimentacao >= p_inicio)
+               AND (p_fim    IS NULL OR m.data_movimentacao <  p_fim + 1)
+        ),
+        por_ciclo AS (
+            SELECT cliente_id, nome, ciclo, COUNT(*) AS qtd
+              FROM mov_cliente
+             GROUP BY cliente_id, nome, ciclo
+        )
+        SELECT nome                            AS nome_cliente,
+               SUM(qtd)                        AS quantidade_movimentacoes,
+               SUM(CASE WHEN qtd <= 10 THEN qtd * 1.00
+                        WHEN qtd <= 20 THEN qtd * 0.75
+                        ELSE                qtd * 0.50 END) AS valor_receita
+          FROM por_ciclo
+         GROUP BY cliente_id, nome
+         ORDER BY nome;
+    END PRC_REL_RECEITA_XPTO;
+
+    PROCEDURE PRC_REL_TODOS_CLIENTES (
+        p_data_ref IN  DATE, -- No corpo do pacote omitimos o comando DEFAULT
+        o_cursor   OUT SYS_REFCURSOR
+    ) IS
+        v_data_ref DATE;
+    BEGIN
+        v_data_ref := NVL(p_data_ref, SYSDATE);
+
+        OPEN o_cursor FOR
+        SELECT cl.nome,
+               cl.data_cadastro,
+               NVL(SUM(CASE WHEN m.tipo_movimentacao = 'CREDITO' THEN m.valor
+                            WHEN m.tipo_movimentacao = 'DEBITO'  THEN -m.valor ELSE 0 END), 0) AS saldo
+          FROM cliente cl
+          LEFT JOIN conta c ON c.cliente_id = cl.id
+          LEFT JOIN movimentacao m ON m.conta_id = c.id
+                                 AND m.data_movimentacao < v_data_ref + 1
+         WHERE cl.ativo = 'S'
+         GROUP BY cl.id, cl.nome, cl.data_cadastro
+         ORDER BY cl.nome;
+    END PRC_REL_TODOS_CLIENTES;
+
+END PKG_RELATORIO;

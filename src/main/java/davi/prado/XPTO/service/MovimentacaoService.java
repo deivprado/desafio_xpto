@@ -1,18 +1,14 @@
 package davi.prado.XPTO.service;
 
-import davi.prado.XPTO.dto.Conta.ContaResponseDTO;
-import davi.prado.XPTO.dto.Movimentacao.MovimentacaoCreateDTO;
-import davi.prado.XPTO.dto.Movimentacao.MovimentacaoResponseDTO;
+import davi.prado.XPTO.dto.movimentacao.MovimentacaoCreateDTO;
+import davi.prado.XPTO.dto.movimentacao.MovimentacaoResponseDTO;
 import davi.prado.XPTO.entity.ContaEntity;
 import davi.prado.XPTO.entity.MovimentacaoEntity;
 import davi.prado.XPTO.repository.MovimentacaoRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

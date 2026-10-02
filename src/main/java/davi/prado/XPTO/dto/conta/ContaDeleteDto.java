@@ -1,6 +1,6 @@
-package davi.prado.XPTO.dto.Conta;
+package davi.prado.XPTO.dto.conta;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -8,15 +8,15 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContaResponseDTO {
+public class ContaDeleteDto {
 
+    @NotBlank
     private String instituicaoFinanceira;
 
+    @NotBlank
     private String agencia;
 
+    @NotBlank
     private String numeroConta;
 
-    private String ativo;
-
-    private String clienteDocumento;
 }

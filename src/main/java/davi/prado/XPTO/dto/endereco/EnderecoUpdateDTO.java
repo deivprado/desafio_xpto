@@ -1,7 +1,5 @@
-package davi.prado.XPTO.dto.Endereco;
+package davi.prado.XPTO.dto.endereco;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter

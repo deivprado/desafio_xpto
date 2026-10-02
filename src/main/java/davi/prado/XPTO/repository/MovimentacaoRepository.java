@@ -10,6 +10,6 @@ import java.util.Optional;
 
 public interface MovimentacaoRepository extends JpaRepository<MovimentacaoEntity, Long> {
 
-    @Query(value = "SELECT m FROM MovimentacaoEntity m WHERE m.conta = :contaId")
+    @Query(value = "SELECT m FROM MovimentacaoEntity m WHERE m.conta.id = :contaId")
     List<MovimentacaoEntity> findByConta(@Param("contaId") Long contaId);
 }

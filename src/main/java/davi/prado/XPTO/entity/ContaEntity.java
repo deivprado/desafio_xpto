@@ -27,7 +27,7 @@ public class ContaEntity {
     @Column(nullable = false)
     private String numeroConta;
 
-    @Column(length = 1)
+    @Column(nullable = false, length = 1)
     private String ativo;
 
     @ManyToOne

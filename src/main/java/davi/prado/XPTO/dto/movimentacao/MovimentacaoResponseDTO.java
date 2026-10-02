@@ -1,9 +1,5 @@
-package davi.prado.XPTO.dto.Movimentacao;
+package davi.prado.XPTO.dto.movimentacao;
 
-import davi.prado.XPTO.entity.ContaEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 import java.math.BigDecimal;

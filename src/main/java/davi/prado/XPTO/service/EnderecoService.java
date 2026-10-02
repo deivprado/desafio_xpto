@@ -1,12 +1,10 @@
 package davi.prado.XPTO.service;
 
-import davi.prado.XPTO.dto.Cliente.ClienteResponseDTO;
-import davi.prado.XPTO.dto.Endereco.EnderecoCreateDTO;
-import davi.prado.XPTO.dto.Endereco.EnderecoResponseDTO;
-import davi.prado.XPTO.dto.Endereco.EnderecoUpdateDTO;
+import davi.prado.XPTO.dto.endereco.EnderecoCreateDTO;
+import davi.prado.XPTO.dto.endereco.EnderecoResponseDTO;
+import davi.prado.XPTO.dto.endereco.EnderecoUpdateDTO;
 import davi.prado.XPTO.entity.ClienteEntity;
 import davi.prado.XPTO.entity.EnderecoEntity;
-import davi.prado.XPTO.exception.ClienteNaoEncontradoException;
 import davi.prado.XPTO.exception.EnderecoJaCadastradoException;
 import davi.prado.XPTO.exception.EnderecoNaoEncontradoException;
 import davi.prado.XPTO.repository.ClienteRepository;
@@ -40,7 +38,9 @@ public class EnderecoService {
         EnderecoEntity enderecoNovo = enderecoRepository.save(EnderecoEntity.builder()
                                             .logradouro(enderecoCreateDTO.getLogradouro().toUpperCase())
                                             .numero(enderecoCreateDTO.getNumero())
-                                            .complemento(enderecoCreateDTO.getComplemento().toUpperCase())
+                                            .complemento(enderecoCreateDTO.getComplemento() == null
+                                                    ? null
+                                                    : enderecoCreateDTO.getComplemento().toUpperCase())
                                             .bairro(enderecoCreateDTO.getBairro().toUpperCase())
                                             .cidade(enderecoCreateDTO.getCidade().toUpperCase())
                                             .uf(enderecoCreateDTO.getUf().toUpperCase())
@@ -129,6 +129,7 @@ public class EnderecoService {
                 .cidade(endereco.getCidade())
                 .uf(endereco.getUf())
                 .cep(endereco.getCep())
+                .ativo(endereco.getAtivo())
                 .clienteDocumento(endereco.getCliente().getDocumento())
                 .build();
     }

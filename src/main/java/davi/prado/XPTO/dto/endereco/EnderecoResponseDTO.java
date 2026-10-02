@@ -1,7 +1,5 @@
-package davi.prado.XPTO.dto.Endereco;
+package davi.prado.XPTO.dto.endereco;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -9,28 +7,23 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EnderecoCreateDTO {
+public class EnderecoResponseDTO {
 
-    @NotBlank
     private String logradouro;
 
-    @NotBlank
     private String numero;
 
     private String complemento;
 
-    @NotBlank
     private String bairro;
 
-    @NotBlank
     private String cidade;
 
-    @NotBlank
     private String uf;
 
-    @NotBlank
     private String cep;
 
-    @NotBlank
+    private String ativo;
+
     private String clienteDocumento;
 }
